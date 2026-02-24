@@ -1,5 +1,6 @@
 import { Container, Typography } from "@mui/material"
 import UsersList from "./features/users/UsersList"
+import Tasks from "./tasks/Tasks";
 
 function App() {
   return (
@@ -8,6 +9,7 @@ function App() {
 				User Dashboard
 			</Typography>
 			<UsersList />
+			<Tasks/>
 		</Container>
 	);
 }
