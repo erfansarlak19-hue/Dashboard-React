@@ -1,11 +1,10 @@
 import { Box, Button, Container, Typography } from "@mui/material";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
-	addTask,
-	setFilter,
 	deleteTask,
+	setFilter,
 	toggleTaskStatus,
-} from "../store/tasksSlice";
+} from "../../store/tasksSlice";
 
 function Tasks() {
 	const dispatch = useAppDispatch();
@@ -20,22 +19,6 @@ function Tasks() {
 				Tasks
 			</Typography>
 			<Box sx={{ display: "flex", gap: 2 }}>
-				<Button
-					variant="contained"
-					sx={{ mt: 2 }}
-					onClick={() =>
-						dispatch(
-							addTask({
-								id: Date.now().toString(),
-								title: "New Task",
-								status: "pending",
-								userId: "1",
-							}),
-						)
-					}
-				>
-					Add Task
-				</Button>
 				<Button
 					sx={{ mt: 2, border: 1 }}
 					onClick={() => dispatch(setFilter("all"))}
@@ -54,7 +37,7 @@ function Tasks() {
 				>
 					Done
 				</Button>
-				<Typography mt={2.5} ml={1} >
+				<Typography mt={2.5} ml={1}>
 					Filter: {filter}
 				</Typography>
 			</Box>

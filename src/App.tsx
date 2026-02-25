@@ -1,17 +1,9 @@
-import { Container, Typography } from "@mui/material"
-import UsersList from "./features/users/UsersList"
-import Tasks from "./tasks/Tasks";
+import Dashboard from "./pages/dashboard/Dashboard";
 
 function App() {
-  return (
-		<Container>
-			<Typography variant="h4" mt={4}>
-				User Dashboard
-			</Typography>
-			<UsersList />
-			<Tasks/>
-		</Container>
+	return (
+		<Dashboard/>
 	);
 }
 
-export default App
+export default App;
