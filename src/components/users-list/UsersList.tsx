@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { getUsers } from "../../features/users/users-api";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { addTask, deleteTask, toggleTaskStatus } from "../../store/tasksSlice";
@@ -32,6 +32,19 @@ export default function UsersList() {
 	const [open, setOpen] = useState(false);
 	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 	const [taskTitle, setTaskTitle] = useState("");
+	const [search, setSearch] = useState("");
+
+		const { data, isLoading, isError, error } = useQuery({
+			queryKey: ["users"],
+			queryFn: getUsers,
+		});
+
+		const filteredUsers = useMemo(() => {
+			if (!data) return [];
+			const q = search.trim().toLowerCase();
+			if (!q) return data;
+			return data.filter((u) => u.name.toLowerCase().includes(q));
+		}, [data, search]);
 
 	const handleOpenTasks = (userId: string) => {
 		setSelectedUserId(userId);
@@ -59,14 +72,8 @@ export default function UsersList() {
 				userId: selectedUserId,
 			}),
 		);
-
 		setTaskTitle("");
 	};
-
-	const { data, isLoading, isError, error } = useQuery({
-		queryKey: ["users"],
-		queryFn: getUsers,
-	});
 
 	if (isLoading) {
 		return (
@@ -84,7 +91,14 @@ export default function UsersList() {
 
 	return (
 		<Box display="flex" flexDirection={"column"} gap={2} mt={4}>
-			{data?.map((user) => (
+			<TextField
+				fullWidth
+				label="Search by name"
+				value={search}
+				onChange={(e) => setSearch(e.target.value)}
+				sx={{ mb: 2 }}
+			/>
+			{filteredUsers.map((user) => (
 				<Card
 					onClick={() => handleOpenTasks(user.id)}
 					sx={{ bgcolor: grey[100], cursor: "pointer" }}
