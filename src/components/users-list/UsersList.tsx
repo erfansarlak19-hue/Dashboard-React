@@ -6,11 +6,13 @@ import {
 	Button,
 	Card,
 	CardContent,
+	Chip,
 	CircularProgress,
 	Dialog,
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	Grid,
 	IconButton,
 	List,
 	ListItem,
@@ -18,16 +20,16 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { getUsers } from "../../features/users/users-api";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { addTask, deleteTask, toggleTaskStatus } from "../../store/tasksSlice";
+import { addTask, deleteTask, setFilter, toggleTaskStatus } from "../../store/tasksSlice";
 
 export default function UsersList() {
 	const dispatch = useAppDispatch();
 	const tasks = useAppSelector((state) => state.tasks.items);
+	const filter = useAppSelector((state) => state.tasks.filter);
 
 	const [open, setOpen] = useState(false);
 	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -57,7 +59,9 @@ export default function UsersList() {
 	};
 
 	const userTasks = selectedUserId
-		? tasks.filter((t) => t.userId === selectedUserId)
+		? tasks
+				.filter((t) => t.userId === selectedUserId)
+				.filter((t) => (filter === "all" ? true : t.status === filter))
 		: [];
 
 	const handleAddTaskForUser = () => {
@@ -90,48 +94,93 @@ export default function UsersList() {
 	const selectedUser = data?.find((u) => u.id === selectedUserId);
 
 	return (
-		<Box display="flex" flexDirection={"column"} gap={2} mt={4}>
+		<Box sx={{ mt: 4 }}>
 			<TextField
 				fullWidth
 				label="Search by name"
 				value={search}
 				onChange={(e) => setSearch(e.target.value)}
-				sx={{ mb: 2 }}
+				sx={{ mb: 3 }}
 			/>
-			{filteredUsers.map((user) => (
-				<Card
-					onClick={() => handleOpenTasks(user.id)}
-					sx={{ bgcolor: grey[100], cursor: "pointer" }}
-					key={user.id}
-				>
-					<CardContent>
-						<Box display="flex" alignItems="center" gap={2}>
-							<Avatar src={user.avatar} />
-							<Box>
-								<Typography variant="h6">{user.name}</Typography>
-								<Typography variant="body2" color="text.secondary">
-									{user.email}
-								</Typography>
-							</Box>
-						</Box>
-					</CardContent>
-				</Card>
-			))}
+			<Grid container spacing={2}>
+				{filteredUsers.map((user) => (
+					<Grid key={user.id}>
+						<Card sx={{ bgcolor: "background.paper" }}>
+							<CardContent>
+								<Box display="flex" alignItems="center" gap={2}>
+									<Avatar src={user.avatar} />
+									<Box>
+										<Typography variant="h6">{user.name}</Typography>
+										<Typography variant="body2" color="text.secondary">
+											{user.email}
+										</Typography>
+									</Box>
+								</Box>
+								<Box display="flex" justifyContent="flex-end" mt={2}>
+									<Button
+										size="small"
+										variant="outlined"
+										onClick={() => handleOpenTasks(user.id)}
+									>
+										View Tasks
+									</Button>
+								</Box>
+							</CardContent>
+						</Card>
+					</Grid>
+				))}
+			</Grid>
+
 			<Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
 				<DialogTitle>
 					Tasks - {selectedUser ? `${selectedUser.name}` : ""}
 				</DialogTitle>
 				<DialogContent>
-					<TextField
-						fullWidth
-						label="Task title"
-						value={taskTitle}
-						onChange={(e) => setTaskTitle(e.target.value)}
+					<Box
+						display="flex"
+						gap={1}
 						sx={{ mt: 1, mb: 2 }}
-					/>
-					<Button variant="contained" onClick={handleAddTaskForUser}>
-						Add Task
-					</Button>
+						alignItems="stretch"
+					>
+						<TextField
+							fullWidth
+							label="Task title"
+							value={taskTitle}
+							onChange={(e) => setTaskTitle(e.target.value)}
+						/>
+						<Button
+							variant="contained"
+							onClick={handleAddTaskForUser}
+							sx={{ minWidth: 90 }}
+						>
+							Add
+						</Button>
+					</Box>
+
+					<Box display="flex" gap={1} sx={{ mt: 2 }}>
+						<Button
+							size="small"
+							variant={filter === "all" ? "contained" : "outlined"}
+							onClick={() => dispatch(setFilter("all"))}
+						>
+							All
+						</Button>
+						<Button
+							size="small"
+							variant={filter === "pending" ? "contained" : "outlined"}
+							onClick={() => dispatch(setFilter("pending"))}
+						>
+							Pending
+						</Button>
+						<Button
+							size="small"
+							variant={filter === "done" ? "contained" : "outlined"}
+							onClick={() => dispatch(setFilter("done"))}
+						>
+							Done
+						</Button>
+					</Box>
+
 					<List sx={{ mt: 2 }}>
 						{userTasks.length === 0 ? (
 							<Typography variant="body2" color="text.secondary">
@@ -142,7 +191,7 @@ export default function UsersList() {
 								<ListItem
 									key={t.id}
 									secondaryAction={
-										<>
+										<Box display="flex" alignItems="center" gap={1}>
 											<Button
 												size="small"
 												onClick={() => dispatch(toggleTaskStatus(t.id))}
@@ -155,12 +204,14 @@ export default function UsersList() {
 											>
 												<DeleteIcon />
 											</IconButton>
-										</>
+										</Box>
 									}
 								>
 									<ListItemText
 										primary={t.title}
-										secondary={`status: ${t.status}`}
+										secondary={
+											<Chip size="small" label={t.status} sx={{ mt: 0.5 }} />
+										}
 									/>
 								</ListItem>
 							))
